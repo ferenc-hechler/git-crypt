@@ -1,4 +1,57 @@
-For for analysing problems with gpg encryption in msys2 / mingw environment
+Fork
+====
+This fork is for analysing problems under Windows 10 with gpg encryption in msys2 / mingw environment.
+
+How to Build a Windows version for debugging
+--------------------------------------------
+For local build the description from here works well: 
+https://stackoverflow.com/questions/43040370/how-to-install-git-crypt-on-windows
+
+
+
+    1. Install msys2:
+
+    http://www.msys2.org/
+
+    2. Open a msys2 terminal. Then ...
+
+    3. Install g++ for windows, following the instructions here:
+
+    https://github.com/orlp/dev-on-windows/wiki/Installing-GCC--&-MSYS2
+
+    4. Be sure /mingw64/bin is in your path. (e.g. which g++)
+
+    5. git clone git@github.com:AGWA/git-crypt
+
+    6. cd git-crypt
+
+    7. make
+    
+To build a version runnable without the libraries "libstdc++-6.dll" and "libcrypto-1_1-x64.dll" in step 7 the libraries can be linked static:
+
+    7. make LDFLAGS="-static-libstdc++ -static -lcrypto.dll"
+
+Here is the output of the make file
+
+```
+> make LDFLAGS="-static-libstdc++ -static -lcrypto.dll"
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o git-crypt.o git-crypt.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o commands.o commands.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o crypto.o crypto.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o gpg.o gpg.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o key.o key.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o util.o util.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o parse_options.o parse_options.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o coprocess.o coprocess.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o fhstream.o fhstream.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o crypto-openssl-10.o crypto-openssl-10.cpp
+g++ -c  -Wall -pedantic -Wno-long-long -O2 -std=c++11  -o crypto-openssl-11.o crypto-openssl-11.cpp
+g++ -Wall -pedantic -Wno-long-long -O2 -std=c++11 -o git-crypt git-crypt.o commands.o crypto.o gpg.o key.o util.o parse_options.o coprocess.o fhstream.o crypto-openssl-10.o crypto-openssl-11.o -static-libstdc++ -static -lcrypto.dll
+```
+
+
+
+
 
 
 git-crypt - transparent file encryption in git
