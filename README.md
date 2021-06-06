@@ -1,3 +1,6 @@
+For for analysing problems with gpg encryption in msys2 / mingw environment
+
+
 git-crypt - transparent file encryption in git
 ==============================================
 
