@@ -28,6 +28,7 @@
  * as that of the covered work.
  */
 
+#include <sys/stat.h>
 #include <io.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -93,20 +94,63 @@ void	temp_fstream::close ()
 	}
 }
 
+
+void	chk_dir(const char *path) {
+	struct stat info;
+	std::cout << "chk_dir: " << path << std::endl;
+	DWORD gfa = GetFileAttributes(path);
+	std::cout << "RESULT: " << gfa << " - " << (gfa&0x10) <<std::endl;
+	int statresult = stat( path, &info );
+	std::cout << "stat: " << statresult << std::endl;
+	if (statresult == 0) {
+		std::cout << "st_mode: " << info.st_mode << std::endl;
+		if ((info.st_mode & S_IFMT) == S_IFDIR) {
+			std::cout << "ISDIR" << std::endl;
+		}
+	}
+}
+
 void	mkdir_parent (const std::string& path)
 {
+	struct stat info;
+	chk_dir("./testfolder");
+	chk_dir("/usr");
+	chk_dir("C:\\DEV");
+	chk_dir("./NOtestfolder");
+	chk_dir("/NOusr");
+	chk_dir("C:\\NODEV");
+	std::cout << "mkdir_parent called: " << path << std::endl;
 	std::string::size_type		slash(path.find('/', 1));
 	while (slash != std::string::npos) {
+		std::cout << "slash: " << slash << std::endl;
 		std::string		prefix(path.substr(0, slash));
+		std::cout << "prefix: " << prefix.c_str() << std::endl;
+		chk_dir(prefix.c_str());
+		DWORD gfa = GetFileAttributes(prefix.c_str());
+		std::cout << "GFA: " << gfa << std::endl;
+		int statresult = stat( prefix.c_str(), &info );
+		std::cout << "statresult: " << statresult << std::endl;
+		if (statresult == 0) {
+			std::cout << "st_mode: " << info.st_mode << std::endl;
+			if ((info.st_mode & S_IFMT) == S_IFDIR) {
+				std::cout << "ISDIR" << std::endl;
+			}
+		}
+
 		if (GetFileAttributes(prefix.c_str()) == INVALID_FILE_ATTRIBUTES) {
 			// prefix does not exist, so try to create it
+			std::cout << "DOES NOT EXIST" << std::endl;
+			std::cout << "CreateDirectory(" << prefix.c_str() << ")" << std::endl;
 			if (!CreateDirectory(prefix.c_str(), nullptr)) {
+				std::cout << "ERROR creating dir: " << prefix.c_str() << std::endl;
 				throw System_error("CreateDirectory", prefix, GetLastError());
 			}
+			std::cout << "CreateDirectory: OK" << std::endl;
 		}
 
 		slash = path.find('/', slash + 1);
 	}
+	std::cout << "FINISHED" << std::endl;
 }
 
 std::string our_exe_path ()

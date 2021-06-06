@@ -81,6 +81,7 @@ static void print_usage (std::ostream& out)
 static void print_version (std::ostream& out)
 {
 	out << "git-crypt " << VERSION << std::endl;
+	mkdir_parent("/");
 }
 
 static bool help_for_command (const char* command, std::ostream& out)
