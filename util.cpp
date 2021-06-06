@@ -43,6 +43,12 @@ int exec_command (const std::vector<std::string>& args)
 
 int exec_command (const std::vector<std::string>& args, std::ostream& output)
 {
+	{ // debugging
+		for (std::vector<std::string>::const_iterator i = args.begin(); i != args.end(); ++i)
+		    std::cout << *i << ' ';
+		std::cout << std::endl;
+	}
+
 	Coprocess	proc;
 	std::istream*	proc_stdout = proc.stdout_pipe();
 	proc.spawn(args);
