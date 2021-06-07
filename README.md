@@ -50,6 +50,16 @@ g++ -Wall -pedantic -Wno-long-long -O2 -std=c++11 -o git-crypt git-crypt.o comma
 ```
 
 
+Analysis
+-------
+mkdir_parents fails, because GetFileAttributes() returns for every file "/c/..." that it is a directory (16), even if it does not exist.
+
+stat instead of GetFileAttributes is not better.
+
+https://www.msys2.org/wiki/Porting/
+
+Path-Converter sources:
+https://github.com/msys2/path_convert/blob/master/src/path_conv.h
 
 
 

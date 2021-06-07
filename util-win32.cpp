@@ -28,13 +28,14 @@
  * as that of the covered work.
  */
 
-#include <sys/stat.h>
 #include <io.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <windows.h>
 #include <vector>
 #include <cstring>
+#include <sys/stat.h>
+#include "path_conv.h"
 
 std::string System_error::message () const
 {
@@ -95,53 +96,69 @@ void	temp_fstream::close ()
 }
 
 
-void	chk_dir(const char *path) {
-	struct stat info;
-	std::cout << "chk_dir: " << path << std::endl;
-	DWORD gfa = GetFileAttributes(path);
-	std::cout << "RESULT: " << gfa << " - " << (gfa&0x10) <<std::endl;
-	int statresult = stat( path, &info );
-	std::cout << "stat: " << statresult << std::endl;
-	if (statresult == 0) {
-		std::cout << "st_mode: " << info.st_mode << std::endl;
-		if ((info.st_mode & S_IFMT) == S_IFDIR) {
-			std::cout << "ISDIR" << std::endl;
+char bs(char c) {
+	return (c=='/')?'\\':c;
+}
+
+const char * conv(char* buf, int len, const char* path) {
+	if ((path[0] == '/') && (path[1] == 'c')) {
+		if (path[2] == 0) {
+			return "C:\\";
+		}
+		strcpy(buf, "C:\\");
+		for (int i=3; i<len; i++) {
+			buf[i] = bs(path[i]);
+			if (path[i] == 0) {
+				break;
+			}
+		}
+		return buf;
+	}
+	for (int i=0; i<len; i++) {
+		buf[i] = bs(path[i]);
+		if (path[i] == 0) {
+			break;
 		}
 	}
+	return buf;
 }
+
+
+DWORD GetFileAttributesForWinPath(const char *path) {
+	char buf[4096];
+	const char* win_path = conv(buf, 4096, path);
+	std::cout << "GetFilaAttributesWin: " << win_path << std::endl;
+	DWORD gfa = GetFileAttributes(win_path);
+	std::cout << "RESULT: " << gfa << " - " << (gfa&0x10) <<std::endl;
+	return gfa;
+}
+
+
+BOOL CreateDirectoryForWinPath(const char *path, LPSECURITY_ATTRIBUTES lpSecurityAttributes) {
+	char buf[4096];
+	const char* win_path = conv(buf, 4096, path);
+	std::cout << "CreateDirectoryWin: " << win_path << std::endl;
+	BOOL result = CreateDirectory(win_path, lpSecurityAttributes);
+	std::cout << "RESULT: " << result << std::endl;
+	return result;
+}
+
 
 void	mkdir_parent (const std::string& path)
 {
-	struct stat info;
-	chk_dir("./testfolder");
-	chk_dir("/usr");
-	chk_dir("C:\\DEV");
-	chk_dir("./NOtestfolder");
-	chk_dir("/NOusr");
-	chk_dir("C:\\NODEV");
 	std::cout << "mkdir_parent called: " << path << std::endl;
 	std::string::size_type		slash(path.find('/', 1));
 	while (slash != std::string::npos) {
 		std::cout << "slash: " << slash << std::endl;
 		std::string		prefix(path.substr(0, slash));
 		std::cout << "prefix: " << prefix.c_str() << std::endl;
-		chk_dir(prefix.c_str());
-		DWORD gfa = GetFileAttributes(prefix.c_str());
+		DWORD gfa = GetFileAttributesForWinPath(prefix.c_str());
 		std::cout << "GFA: " << gfa << std::endl;
-		int statresult = stat( prefix.c_str(), &info );
-		std::cout << "statresult: " << statresult << std::endl;
-		if (statresult == 0) {
-			std::cout << "st_mode: " << info.st_mode << std::endl;
-			if ((info.st_mode & S_IFMT) == S_IFDIR) {
-				std::cout << "ISDIR" << std::endl;
-			}
-		}
-
-		if (GetFileAttributes(prefix.c_str()) == INVALID_FILE_ATTRIBUTES) {
+		if (GetFileAttributesForWinPath(prefix.c_str()) == INVALID_FILE_ATTRIBUTES) {
 			// prefix does not exist, so try to create it
 			std::cout << "DOES NOT EXIST" << std::endl;
 			std::cout << "CreateDirectory(" << prefix.c_str() << ")" << std::endl;
-			if (!CreateDirectory(prefix.c_str(), nullptr)) {
+			if (!CreateDirectoryForWinPath(prefix.c_str(), nullptr)) {
 				std::cout << "ERROR creating dir: " << prefix.c_str() << std::endl;
 				throw System_error("CreateDirectory", prefix, GetLastError());
 			}
