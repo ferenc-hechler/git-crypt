@@ -100,7 +100,7 @@ char bs(char c) {
 	return (c=='/')?'\\':c;
 }
 
-const char * conv(char* buf, int len, const char* path) {
+const char * conv2winpath(char* buf, int len, const char* path) {
 	if ((path[0] == '/') && (path[1] == 'c')) {
 		if (path[2] == 0) {
 			return "C:\\";
@@ -126,48 +126,48 @@ const char * conv(char* buf, int len, const char* path) {
 
 DWORD GetFileAttributesForWinPath(const char *path) {
 	char buf[4096];
-	const char* win_path = conv(buf, 4096, path);
-	std::cout << "GetFilaAttributesWin: " << win_path << std::endl;
+	const char* win_path = conv2winpath(buf, 4096, path);
+	dbglog << "GetFilaAttributesWin: " << win_path << std::endl;
 	DWORD gfa = GetFileAttributes(win_path);
-	std::cout << "RESULT: " << gfa << " - " << (gfa&0x10) <<std::endl;
+	dbglog << "RESULT: " << gfa << " - " << (gfa&0x10) <<std::endl;
 	return gfa;
 }
 
 
 BOOL CreateDirectoryForWinPath(const char *path, LPSECURITY_ATTRIBUTES lpSecurityAttributes) {
 	char buf[4096];
-	const char* win_path = conv(buf, 4096, path);
-	std::cout << "CreateDirectoryWin: " << win_path << std::endl;
+	const char* win_path = conv2winpath(buf, 4096, path);
+	dbglog << "CreateDirectoryWin: " << win_path << std::endl;
 	BOOL result = CreateDirectory(win_path, lpSecurityAttributes);
-	std::cout << "RESULT: " << result << std::endl;
+	dbglog << "RESULT: " << result << std::endl;
 	return result;
 }
 
 
 void	mkdir_parent (const std::string& path)
 {
-	std::cout << "mkdir_parent called: " << path << std::endl;
+	dbglog << "mkdir_parent called: " << path << std::endl;
 	std::string::size_type		slash(path.find('/', 1));
 	while (slash != std::string::npos) {
-		std::cout << "slash: " << slash << std::endl;
+		dbglog << "slash: " << slash << std::endl;
 		std::string		prefix(path.substr(0, slash));
-		std::cout << "prefix: " << prefix.c_str() << std::endl;
+		dbglog << "prefix: " << prefix.c_str() << std::endl;
 		DWORD gfa = GetFileAttributesForWinPath(prefix.c_str());
-		std::cout << "GFA: " << gfa << std::endl;
+		dbglog << "GFA: " << gfa << std::endl;
 		if (GetFileAttributesForWinPath(prefix.c_str()) == INVALID_FILE_ATTRIBUTES) {
 			// prefix does not exist, so try to create it
-			std::cout << "DOES NOT EXIST" << std::endl;
-			std::cout << "CreateDirectory(" << prefix.c_str() << ")" << std::endl;
+			dbglog << "DOES NOT EXIST" << std::endl;
+			dbglog << "CreateDirectory(" << prefix.c_str() << ")" << std::endl;
 			if (!CreateDirectoryForWinPath(prefix.c_str(), nullptr)) {
-				std::cout << "ERROR creating dir: " << prefix.c_str() << std::endl;
+				dbglog << "ERROR creating dir: " << prefix.c_str() << std::endl;
 				throw System_error("CreateDirectory", prefix, GetLastError());
 			}
-			std::cout << "CreateDirectory: OK" << std::endl;
+			dbglog << "CreateDirectory: OK" << std::endl;
 		}
 
 		slash = path.find('/', slash + 1);
 	}
-	std::cout << "FINISHED" << std::endl;
+	dbglog << "FINISHED" << std::endl;
 }
 
 std::string our_exe_path ()

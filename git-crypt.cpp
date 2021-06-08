@@ -39,8 +39,10 @@
 #include <unistd.h>
 #include <iostream>
 #include <string.h>
+#include <fstream>
 
 const char*	argv0;
+std::ofstream dbglog;
 
 static void print_usage (std::ostream& out)
 {
@@ -134,7 +136,7 @@ static int version (int argc, const char** argv)
 }
 
 
-int main (int argc, const char** argv)
+int xmain (int argc, const char** argv)
 try {
 	argv0 = argv[0];
 
@@ -263,5 +265,17 @@ try {
 	std::cerr << "git-crypt: I/O error: " << e.what() << std::endl;
 	return 1;
 }
+
+int main (int argc, const char** argv) {
+	dbglog.open("C:\\DEV\\LOGS\\git-crypt-debug.log", std::ios_base::app);
+	dbglog << "--- start ---" << std::endl;
+
+	int result = xmain(argc, argv);
+
+	dbglog << "--- finished ---" << std::endl;
+	dbglog.close();
+	return result;
+}
+
 
 

@@ -31,8 +31,12 @@
 #ifndef GIT_CRYPT_GIT_CRYPT_HPP
 #define GIT_CRYPT_GIT_CRYPT_HPP
 
+#include <fstream>
+
 #define VERSION "0.6.0w6"
 
 extern const char*	argv0;	// initialized in main() to argv[0]
+
+extern std::ofstream dbglog;
 
 #endif

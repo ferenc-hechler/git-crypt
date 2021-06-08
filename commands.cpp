@@ -50,6 +50,8 @@
 #include <errno.h>
 #include <exception>
 #include <vector>
+#include "git-crypt.hpp"
+#include "util.hpp"
 
 enum {
 	// # of arguments per git checkout call; must be large enough to be efficient but small
@@ -677,7 +679,7 @@ static bool decrypt_repo_keys (std::vector<Key_file>& key_files, uint32_t key_ve
 
 static void encrypt_repo_key (const char* key_name, const Key_file::Entry& key, const std::vector<std::pair<std::string, bool> >& collab_keys, const std::string& keys_path, std::vector<std::string>* new_files)
 {
-	std::cout << "encrypt_repo_key(" << (key_name?key_name:"") << ",...," << keys_path << ")" << std::endl;
+	dbglog << "encrypt_repo_key(" << (key_name?key_name:"") << ",...," << keys_path << ")" << std::endl;
 	std::string	key_file_data;
 	{
 		Key_file this_version_key_file;
@@ -685,7 +687,7 @@ static void encrypt_repo_key (const char* key_name, const Key_file::Entry& key, 
 		this_version_key_file.add(key);
 		key_file_data = this_version_key_file.store_to_string();
 	}
-	std::cout << "keyfiledata: " << key_file_data << std::endl;
+	dbglog << "keyfiledata: " << key_file_data << std::endl;
 	for (std::vector<std::pair<std::string, bool> >::const_iterator collab(collab_keys.begin()); collab != collab_keys.end(); ++collab) {
 		const std::string&	fingerprint(collab->first);
 		const bool		key_is_trusted(collab->second);
@@ -693,17 +695,17 @@ static void encrypt_repo_key (const char* key_name, const Key_file::Entry& key, 
 		path_builder << keys_path << '/' << (key_name ? key_name : "default") << '/' << key.version << '/' << fingerprint << ".gpg";
 		std::string		path(path_builder.str());
 
-		std::cout << "path: " << path << std::endl;
+		dbglog << "path: " << path << std::endl;
 
 		if (access(path.c_str(), F_OK) == 0) {
 			continue;
 		}
 
-		std::cout << "mkdir" << std::endl;
+		dbglog << "mkdir" << std::endl;
 		mkdir_parent(path);
-		std::cout << "gpg_encrypt_to_file" << std::endl;
+		dbglog << "gpg_encrypt_to_file" << std::endl;
 		gpg_encrypt_to_file(path, fingerprint, key_is_trusted, key_file_data.data(), key_file_data.size());
-		std::cout << "push_back" << std::endl;
+		dbglog << "push_back" << std::endl;
 		new_files->push_back(path);
 	}
 }
@@ -1073,7 +1075,12 @@ int unlock (int argc, const char** argv)
 		// TODO: don't hard code key version 0 here - instead, determine the most recent version and try to decrypt that, or decrypt all versions if command-line option specified
 		// TODO: command line option to only unlock specific key instead of all of them
 		// TODO: avoid decrypting repo keys which are already unlocked in the .git directory
-		if (!decrypt_repo_keys(key_files, 0, gpg_secret_keys, repo_keys_path)) {
+
+		char buffer[4096];
+		const char *winrepokeypath = conv2winpath(buffer, 4096, repo_keys_path.c_str());
+
+		//if (!decrypt_repo_keys(key_files, 0, gpg_secret_keys, repo_keys_path)) {
+		if (!decrypt_repo_keys(key_files, 0, gpg_secret_keys, winrepokeypath)) {
 			std::clog << "Error: no GPG secret key available to unlock this repository." << std::endl;
 			std::clog << "To unlock with a shared symmetric key instead, specify the path to the symmetric key as an argument to 'git-crypt unlock'." << std::endl;
 			// TODO std::clog << "To see a list of GPG keys authorized to unlock this repository, run 'git-crypt ls-gpg-users'." << std::endl;

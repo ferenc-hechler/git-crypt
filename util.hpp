@@ -79,5 +79,7 @@ void		create_protected_file (const char* path); // create empty file accessible 
 int		util_rename (const char*, const char*);
 std::vector<std::string> get_directory_contents (const char* path);
 
+const char * conv2winpath(char* buf, int len, const char* path);
+
 #endif
 

@@ -33,6 +33,7 @@
 #include "coprocess.hpp"
 #include <string>
 #include <iostream>
+#include <sstream>
 
 int exec_command (const std::vector<std::string>& args)
 {
@@ -43,27 +44,44 @@ int exec_command (const std::vector<std::string>& args)
 
 int exec_command (const std::vector<std::string>& args, std::ostream& output)
 {
-	{ // debugging
+	{   // debugging
+		dbglog << "exec_command(";
 		for (std::vector<std::string>::const_iterator i = args.begin(); i != args.end(); ++i)
-		    std::cout << *i << ' ';
-		std::cout << std::endl;
+		    dbglog << *i << ' ';
+		dbglog << ")" << std::endl;
 	}
 
 	Coprocess	proc;
 	std::istream*	proc_stdout = proc.stdout_pipe();
 	proc.spawn(args);
-	output << proc_stdout->rdbuf();
-	return proc.wait();
+	std::ostringstream buffer;
+	buffer << proc_stdout->rdbuf();
+	int result = proc.wait();
+	dbglog << "[--- OUT ---]" << std::endl << buffer.str() << std::endl << "[-----------]" << std::endl;
+	output << buffer.str();
+	return result;
 }
 
 int exec_command_with_input (const std::vector<std::string>& args, const char* p, size_t len)
 {
+	{   // debugging
+		dbglog << "exec_command_with_input(";
+		for (std::vector<std::string>::const_iterator i = args.begin(); i != args.end(); ++i)
+		    dbglog << *i << ' ';
+		dbglog << ")" << std::endl;
+	}
 	Coprocess	proc;
 	std::ostream*	proc_stdin = proc.stdin_pipe();
 	proc.spawn(args);
 	proc_stdin->write(p, len);
 	proc.close_stdin();
-	return proc.wait();
+
+	int result = proc.wait();
+
+	std::ostringstream buffer;
+	buffer.write(p, len);
+	dbglog << "[--- IN ---]" << std::endl << buffer.str() << std::endl << "[-----------]" << std::endl;
+	return result;
 }
 
 std::string	escape_shell_arg (const std::string& str)
