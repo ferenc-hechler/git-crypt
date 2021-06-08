@@ -267,13 +267,16 @@ try {
 }
 
 int main (int argc, const char** argv) {
-	dbglog.open("C:\\DEV\\LOGS\\git-crypt-debug.log", std::ios_base::app);
-	dbglog << "--- start ---" << std::endl;
+
+	// do not log out debug info
+	//dbglog.open("C:\\DEV\\LOGS\\git-crypt-debug.log", std::ios_base::app);
+	//dbglog << "--- start ---" << std::endl;
 
 	int result = xmain(argc, argv);
 
-	dbglog << "--- finished ---" << std::endl;
-	dbglog.close();
+	//dbglog << "--- finished ---" << std::endl;
+	//dbglog.close();
+
 	return result;
 }
 

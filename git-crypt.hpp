@@ -33,7 +33,7 @@
 
 #include <fstream>
 
-#define VERSION "0.6.0w7"
+#define VERSION "0.6.0-msys2"
 
 extern const char*	argv0;	// initialized in main() to argv[0]
 
